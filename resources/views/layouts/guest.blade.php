@@ -11,8 +11,8 @@
     
     <!-- Additional styles -->
     <style>
-        .bg-mosque {
-            background-image: url('{{ asset('assets/images/mosque.jpg') }}');
+        .bg-dynamic {
+            background-image: url('{{ asset('assets/images/' . ($backgroundImage ?? 'mosque.jpg')) }}');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -24,17 +24,17 @@
     </style>
 </head>
 <body class="font-system bg-gray-50 min-h-screen">
-    <div class="min-h-screen flex">
-        <!-- Left Side - Background Image (Hidden on mobile) -->
-        <div class="hidden lg:flex lg:w-1/2 bg-mosque relative">
+    <div class="min-h-screen flex {{ ($reverseLayout ?? false) ? 'flex-row-reverse' : '' }}">
+        <!-- Background Image Side (Hidden on mobile) -->
+        <div class="hidden lg:flex lg:w-1/2 bg-dynamic relative">
             <!-- Optional overlay for better text readability if needed -->
             <div class="absolute inset-0 bg-black bg-opacity-20"></div>
         </div>
         
-        <!-- Right Side - Form Area -->
+        <!-- Form Area Side -->
         <div class="w-full lg:w-1/2 flex flex-col">
             <!-- Logo Section -->
-            <div class="flex justify-end p-6 lg:p-8">
+            <div class="flex justify-end p-6 lg:p-8 {{ ($reverseLayout ?? false) ? 'flex-row-reverse' : '' }}">
                 <a href="{{ route('login') }}" class="flex-shrink-0">
                     <img src="{{ asset('assets/logos/kbri-logo.png') }}" 
                          alt="KBRI Logo" 
@@ -57,6 +57,6 @@
     </div>
     
     <!-- Mobile Background (Shows on small screens) -->
-    <div class="lg:hidden fixed inset-0 bg-mosque opacity-10 pointer-events-none"></div>
+    <div class="lg:hidden fixed inset-0 bg-dynamic opacity-10 pointer-events-none"></div>
 </body>
 </html>
