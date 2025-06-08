@@ -8,11 +8,6 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-// Redirect root to login
-Route::get('/', function () {
-    return redirect()->route('login');
-});
-
 // Authentication Routes
 Route::get('/login', function () {
     return view('auth.login');
@@ -22,25 +17,31 @@ Route::get('/register', function () {
     return view('auth.register');
 })->name('register');
 
+Route::post('/register', function () {
+    // TODO: Implement registration logic
+    return redirect()->route('login')->with('success', 'Registration successful! Please log in.');
+})->name('register.store');
+
 // Forgot Password Routes
 Route::get('/forgot-password', function () {
-    return view('auth.forgot-password');
+    return view('auth.forgot-password.forgot-password');
 })->name('forgot-password');
 
 Route::post('/forgot-password', function () {
-
-    // For now, redirect to next step or show success message
-    return back()->with('success', 'OTP sent to your email address!');
+    // TODO: Implement OTP sending logic
+    return redirect()->route('forgot-password.otp');
 })->name('forgot-password.send');
 
-// Placeholder for login POST (for later)
-Route::post('/login', function () {
+Route::get('/forgot-password/otp', function () {
+    return view('auth.forgot-password.otp');
+})->name('forgot-password.otp');
 
-    return back()->with('error', 'Login functionality not implemented yet');
-});
+Route::post('/forgot-password/verify', function () {
+    // TODO: Implement OTP verification logic
+    return redirect()->route('forgot-password.reset');
+})->name('forgot-password.verify');
 
-// Placeholder for register POST (for this later)
-Route::post('/register', function () {
-
-    return back()->with('error', 'Register functionality not implemented yet');
+// Default route
+Route::get('/', function () {
+    return view('welcome');
 });
