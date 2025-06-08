@@ -22,18 +22,25 @@ Route::get('/register', function () {
     return view('auth.register');
 })->name('register');
 
+// Forgot Password Routes
 Route::get('/forgot-password', function () {
     return view('auth.forgot-password');
-})->name('password.request');
+})->name('forgot-password');
+
+Route::post('/forgot-password', function () {
+
+    // For now, redirect to next step or show success message
+    return back()->with('success', 'OTP sent to your email address!');
+})->name('forgot-password.send');
 
 // Placeholder for login POST (for later)
 Route::post('/login', function () {
-   
+
     return back()->with('error', 'Login functionality not implemented yet');
 });
 
 // Placeholder for register POST (for this later)
 Route::post('/register', function () {
-   
+
     return back()->with('error', 'Register functionality not implemented yet');
 });
