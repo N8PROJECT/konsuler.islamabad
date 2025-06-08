@@ -11,22 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('members', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('application_id')->constrained()->onDelete('cascade');
             $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
             $table->string('nik')->nullable();
-            $table->enum('gender', ['male', 'female'])->nullable();
             $table->string('pob')->nullable();
             $table->date('dob')->nullable();
+            $table->string('nationality')->nullable();
+            $table->string('relation')->nullable();
+            $table->string('address')->nullable();
             $table->string('passport_number')->nullable();
             $table->date('passport_issued_date')->nullable();
-            $table->date('passport_expiry_date')->nullable();
-            $table->string('photo')->nullable();
-            $table->string('role')->default('user');
-            $table->rememberToken();
+            $table->date('passport_expired_date')->nullable();
+            $table->date('visa_start_date')->nullable();
+            $table->date('visa_expired_date')->nullable();
             $table->timestamps();
         });
     }
@@ -36,6 +35,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('members');
     }
 };
