@@ -66,14 +66,14 @@
         </x-button>
 
         <!-- Back to Login Link -->
-        <div class="text-center">
+        {{-- <div class="text-center">
             <p class="text-gray-600">
                 Remember your password? 
                 <a href="{{ route('login') }}" class="font-medium text-[#CB1428] hover:text-red-700">
                     Back to Login
                 </a>
             </p>
-        </div>
+        </div> --}}
     </form>
 </x-form-card>
 @endsection

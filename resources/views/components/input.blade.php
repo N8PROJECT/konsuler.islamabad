@@ -45,8 +45,8 @@
             value="{{ old($name, $value) }}"
             placeholder="{{ $placeholder }}"
             @if($required) required @endif
-            class="w-full {{ $icon ? 'pl-10' : 'pl-3' }} {{ $showPasswordToggle ? 'pr-10' : 'pr-3' }} py-3 border rounded-lg transition-colors duration-200 text-gray-900 placeholder-gray-500
-                   @error($name) border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500 @else border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @enderror"
+            class="w-full {{ $icon ? 'pl-10' : 'pl-3' }} {{ $showPasswordToggle ? 'pr-10' : 'pr-3' }} py-3 border  transition-colors duration-200 text-gray-900 placeholder-gray-500
+                   border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CB1428] focus:border-[#CB1428] outline-none"
             {{ $attributes }}
         >
         

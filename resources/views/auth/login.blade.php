@@ -46,7 +46,7 @@
             </div>
             
             <div class="text-sm">
-                <a href="{{ route('forgot-password') }}" class="text-red-600 hover:text-red-700 hover:underline">
+                <a href="{{ route('forgot-password') }}" class="text-[#CB1428] hover:text-red-700 hover:underline">
                     Forgot password?
                 </a>
             </div>

@@ -36,12 +36,16 @@ Route::get('/forgot-password/otp', function () {
     return view('auth.forgot-password.otp');
 })->name('forgot-password.otp');
 
+Route::get('/forgot-password/new-password', function () {
+    return view('auth.forgot-password.new-password');
+})->name('forgot-password.new-password');
+
 Route::post('/forgot-password/verify', function () {
     // TODO: Implement OTP verification logic
-    return redirect()->route('forgot-password.reset');
+    return redirect()->route('forgot-password.new-password');
 })->name('forgot-password.verify');
 
 // Default route
 Route::get('/', function () {
-    return view('welcome');
-});
+    return view('auth.login');
+})->name('login');
