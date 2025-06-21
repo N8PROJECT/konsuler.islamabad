@@ -22,11 +22,10 @@ class Application extends Model
         'ektp', 'kartu_keluarga', 'ijazah', 'surat_kemampuan_finansial',
         'surat_acceptance_universitas_pakistan', 'surat_keterangan_kemenag', 'bukti_lapor_diri',
         'visa', 'bonafide', 'passport_suami_istri', 'bonafide_suami_istri',
-        'passport_ayah', 'passport_ibu', 'noc', 'members', 'comment',
+        'passport_ayah', 'passport_ibu', 'noc', 'comment',
     ];
 
     protected $casts = [
-        'members' => 'array',
         'date_of_birth' => 'date',
         'passport_issued_date' => 'date',
         'passport_expired_date' => 'date',

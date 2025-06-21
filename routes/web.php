@@ -39,5 +39,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Hanya untuk role user (cek di controller)
     Route::get('/applications/create', [ApplicationController::class, 'create'])->name('applications.create');
-    Route::post('/applications', [ApplicationController::class, 'store'])->name('applications.store');
+    Route::get('/applications', [ApplicationController::class, 'index'])->name('applications.index');
+    Route::get('/applications/{id}', [ApplicationController::class, 'show'])->name('applications.show');
+    Route::patch('/applications/{application}/cancel', [ApplicationController::class, 'cancel'])->name('applications.cancel');
+    Route::post('/applications/store', [ApplicationController::class, 'store'])->name('applications.store');
 });
