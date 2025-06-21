@@ -1,9 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\OtpVerificationController;
 
@@ -67,25 +64,4 @@ Route::get('/home', function () {
 
 Route::get('/', function () {
     return view('welcome');
-});
-
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
-
-Route::get('/dashboard-admin', function () {
-    return view('dashboard-admin');
-})->middleware(['auth'])->name('admin.dashboard');
-
-Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard-user', function () {
-        return view('dashboard-user');
-    })->name('user.dashboard');
-
-    // Hanya untuk role user (cek di controller)
-    Route::get('/applications/create', [ApplicationController::class, 'create'])->name('applications.create');
-    Route::get('/applications', [ApplicationController::class, 'index'])->name('applications.index');
-    Route::get('/applications/{id}', [ApplicationController::class, 'show'])->name('applications.show');
-    Route::patch('/applications/{application}/cancel', [ApplicationController::class, 'cancel'])->name('applications.cancel');
-    Route::post('/applications/store', [ApplicationController::class, 'store'])->name('applications.store');
 });
