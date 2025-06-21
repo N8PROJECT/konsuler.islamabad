@@ -45,7 +45,15 @@ Route::post('/forgot-password/verify', function () {
     return redirect()->route('forgot-password.new-password');
 })->name('forgot-password.verify');
 
-// Default route
+
+
+// Add this route
+Route::get('/home', function () {
+    return view('welcome');
+})->name('home');
+
+// default route 
 Route::get('/', function () {
-    return view('auth.login');
-})->name('login');
+    return view('welcome');
+});
+
