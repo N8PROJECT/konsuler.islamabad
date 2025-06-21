@@ -98,8 +98,7 @@
         </div>
     </section>
 
- <!-- NOC Carousel Section -->
-    <section class="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
+    <section class="py-16 px-4 sm:px-6 lg:px-8 bg-white">
         <div class="max-w-7xl mx-auto text-center mb-12">
             <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 mb-4" style="color: #CB1428;">
                 Your Visa & NOC, Your Way
@@ -109,9 +108,9 @@
             </p>
         </div>
 
-        <!-- New wrapper for carousel and arrows to control external positioning -->
+     
         <div class="relative max-w-6xl mx-auto"> 
-            <!-- Navigation Arrows (Now outside the overflow-hidden div) -->
+          
             <button id="prevBtn" class="absolute -left-16 top-1/2 -translate-y-1/2 bg-red-700 hover:bg-red-800 text-white p-3 rounded-full shadow-lg z-20 focus:outline-none transition-transform duration-200 transform hover:scale-110 hidden md:block">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
             </button>
@@ -119,14 +118,14 @@
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
             </button>
 
-            <!-- Carousel Inner Container (This will be controlled by JS) -->
-            <div id="noc-carousel" class="flex items-center justify-center space-x-6 py-8 overflow-hidden"> <!-- Added overflow-hidden here -->
-                <!-- NOC Card: NOC for Trip -->
+           
+            <div id="noc-carousel" class="flex items-center justify-center space-x-6 py-8 overflow-hidden">
+             
                 <div class="noc-card flex-shrink-0 w-64 md:w-72 lg:w-80 bg-white rounded-lg shadow-xl overflow-hidden cursor-pointer transition-all duration-500 ease-in-out opacity-70 transform scale-90">
-                    <!-- Image container with relative positioning for icon -->
+                    
                     <div class="relative">
                         <img src="{{ asset('assets/images/mosque.jpg') }}" alt="NOC for Trip" class="w-full h-40 object-cover">
-                        <!-- Icon positioned absolutely -->
+                       
                         <div class="absolute bottom-0 left-0 bg-white p-2 rounded-tr-lg">
                             <svg class="w-5 h-5 text-red-700" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                 <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0113 3.414L16.586 7A2 2 0 0117 8.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
@@ -134,16 +133,16 @@
                         </div>
                     </div>
                     
-                    <!-- Content area for title ONLY, with padding -->
+                  
                     <div class="px-6 py-4 text-center"> 
                         <h3 class="text-xl font-semibold text-gray-800 mb-4">NOC for Trip</h3> 
                     </div>
 
-                    <!-- Full-width button, directly inside noc-card, at the very bottom -->
+                    
                     <a href="#" class="block w-full py-3 text-white font-medium text-lg text-center rounded-b-lg transition-all duration-300 hover:opacity-90" style="background-color: #CB1428;">Apply Now</a>
                 </div>
 
-                <!-- NOC Card: NOC IBBC -->
+             
                 <div class="noc-card flex-shrink-0 w-64 md:w-72 lg:w-80 bg-white rounded-lg shadow-xl overflow-hidden cursor-pointer transition-all duration-500 ease-in-out opacity-70 transform scale-90">
                     <div class="relative">
                         <img src="{{ asset('assets/images/mosque.jpg') }}" alt="NOC IBBC" class="w-full h-40 object-cover">
@@ -159,7 +158,7 @@
                     <a href="#" class="block w-full py-3 text-white font-medium text-lg text-center rounded-b-lg transition-all duration-300 hover:opacity-90" style="background-color: #CB1428;">Apply Now</a>
                 </div>
 
-                <!-- NOC Card: NOC New Student (This will be the initially highlighted card) -->
+           
                 <div class="noc-card flex-shrink-0 w-64 md:w-72 lg:w-80 bg-white rounded-lg shadow-xl overflow-hidden cursor-pointer transition-all duration-500 ease-in-out">
                     <div class="relative">
                         <img src="{{ asset('assets/images/mosque.jpg') }}" alt="NOC New Student" class="w-full h-40 object-cover">
@@ -175,7 +174,7 @@
                     <a href="#" class="block w-full py-3 text-white font-medium text-lg text-center rounded-b-lg transition-all duration-300 hover:opacity-90" style="background-color: #CB1428;">Apply Now</a>
                 </div>
 
-                <!-- NOC Card: NOC HEC -->
+     
                 <div class="noc-card flex-shrink-0 w-64 md:w-72 lg:w-80 bg-white rounded-lg shadow-xl overflow-hidden cursor-pointer transition-all duration-500 ease-in-out opacity-70 transform scale-90">
                     <div class="relative">
                         <img src="{{ asset('assets/images/mosque.jpg') }}" alt="NOC HEC" class="w-full h-40 object-cover">
@@ -191,7 +190,7 @@
                     <a href="#" class="block w-full py-3 text-white font-medium text-lg text-center rounded-b-lg transition-all duration-300 hover:opacity-90" style="background-color: #CB1428;">Apply Now</a>
                 </div>
 
-                <!-- NOC Card: Visa Renewal -->
+    
                 <div class="noc-card flex-shrink-0 w-64 md:w-72 lg:w-80 bg-white rounded-lg shadow-xl overflow-hidden cursor-pointer transition-all duration-500 ease-in-out opacity-70 transform scale-90">
                     <div class="relative">
                         <img src="{{ asset('assets/images/mosque.jpg') }}" alt="Visa Renewal" class="w-full h-40 object-cover">
