@@ -84,7 +84,7 @@ return new class extends Migration
             $table->string('noc')->nullable();
 
             // Family Information
-            $table->json('members')->nullable();
+            // $table->json('members')->nullable();
 
             // Admin
             $table->string('comment')->nullable();

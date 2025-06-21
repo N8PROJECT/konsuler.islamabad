@@ -10,43 +10,34 @@ use Illuminate\Support\Facades\Validator;
 
 class ApplicationController extends Controller
 {
-    public function index()
-    {
+    public function index() {
+        $user = auth()->user();
+
         $applications = Application::with('members')
-            ->where('user_id', auth()->id())
-            ->latest()
+            ->where('user_id', $user->id)
+            ->orderByDesc('created_at')
             ->get();
 
-        return response()->json([
-            'success' => true,
-            'data' => $applications,
-        ]);
+        return view('application.index', compact('applications'));
+    }
+
+    public function show($id) {
+        $application = Application::with('members')->find($id);
+
+        if (!$application || $application->user_id !== auth()->id()) {
+            return redirect()->route('applications.index')->with('error', 'Not found or unauthorized.');
+        }
+
+        return view('application.show', compact('application'));
     }
 
     public function create() {
         return view('application.create');
     }
 
-    public function show($id)
-    {
-        $application = Application::with('members')->where('user_id', auth()->id())->find($id);
+    public function store(Request $request) {
+        $user = auth()->user();
 
-        if (!$application) {
-            return response()->json(['error' => 'Application not found'], 404);
-        }
-
-        return response()->json(['success' => true, 'data' => $application]);
-    }
-
-    public function store(Request $request)
-    {
-        $user = Auth::user();
-
-        if ($user->role !== 'user') {
-            abort(403, 'Unauthorized');
-        }
-
-        // Validasi dasar
         $request->validate([
             'type_id' => 'required|exists:types,id',
             'fullname' => 'required|string',
@@ -56,40 +47,199 @@ class ApplicationController extends Controller
             'passport_expired_date' => 'required|date',
         ]);
 
-        $typeId = (int) $request->type_id;
+        switch ($request->type_id) {
+            case 1: // New Student
+                $request->validate([
+                    'nik' => 'required|string',
+                    'place_of_birth' => 'required|string',
+                    'date_of_birth' => 'required|date',
 
-        $dynamicRules = $this->getValidationRulesByType($request, $typeId);
-        $request->validate($dynamicRules);
+                    'members' => 'nullable|array',
+                    'members.*.name' => 'required|string',
+                    'members.*.nik' => 'nullable|string',
+                    'members.*.pob' => 'nullable|string',
+                    'members.*.dob' => 'nullable|date',
+                    'members.*.nationality' => 'required|string',
+                    'members.*.relation' => 'required|string',
+                    'members.*.address' => 'nullable|string',
 
-        // Siapkan data
-        $data = $request->except(['members']);
+                    'surat_pengantar_ppmi' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                    'passport' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                    'ektp' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                    'kartu_keluarga' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                    'ijazah' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                    'surat_kemampuan_finansial' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                    'surat_acceptance_universitas_pakistan' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                    'surat_keterangan_kemenag' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                ]);
+                break;
+
+            case 2: // IBBC
+                $request->validate([
+                    'visa_start_date' => 'required|date',
+                    'visa_expired_date' => 'required|date',
+                    'place_of_birth' => 'required|string',
+                    'date_of_birth' => 'required|date',
+
+                    'surat_pengantar_ppmi' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                    'passport' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                    'visa' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                    'bukti_lapor_diri' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                    'ijazah' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                    'surat_acceptance_universitas_pakistan' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                ]);
+                break;
+
+            case 3: // HEC
+                $request->validate([
+                    'visa_start_date' => 'required|date',
+                    'visa_expired_date' => 'required|date',
+                    'universitas_selanjutnya' => 'required|string',
+                    'place_of_birth' => 'required|string',
+                    'date_of_birth' => 'required|date',
+
+                    'surat_pengantar_ppmi' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                    'passport' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                    'visa' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                    'bukti_lapor_diri' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                    'ijazah' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                    'surat_acceptance_universitas_pakistan' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                ]);
+                break;
+
+            case 4: // Renewal Visa
+                $request->validate([
+                    'renewal_for' => 'required|in:student,spouse,children',
+                ]);
+
+                switch ($request->renewal_for) {
+                    case 'student':
+                        $request->validate([
+                            'visa_start_date' => 'required|date',
+                            'visa_expired_date' => 'required|date',
+                            'place_of_birth' => 'required|string',
+                            'date_of_birth' => 'required|date',
+
+                            'bukti_lapor_diri' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                            'bonafide' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                            'passport' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                            'visa' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                        ]);
+                        break;
+
+                    case 'spouse':
+                        $request->validate([
+                            'place_of_birth' => 'required|string',
+                            'date_of_birth' => 'required|date',
+                            'visa_start_date' => 'required|date',
+                            'visa_expired_date' => 'required|date',
+
+                            'name_spouse' => 'required|string',
+                            'pob_spouse' => 'required|string',
+                            'dob_spouse' => 'required|date',
+                            'address_spouse' => 'required|string',
+                            'nik_spouse' => 'required|string',
+                            'nationality_spouse' => 'required|string',
+                            'relation_spouse' => 'required|string',
+                            'passport_number_spouse' => 'required|string',
+                            'passport_issued_date_spouse' => 'required|date',
+                            'passport_expired_date_spouse' => 'required|date',
+
+                            'surat_pengantar_ppmi' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                            'passport' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                            'passport_suami_istri' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                            'bonafide_suami_istri' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                            'visa' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                        ]);
+                        break;
+
+                    case 'children':
+                        $request->validate([
+                            'visa_start_date' => 'required|date',
+                            'visa_expired_date' => 'required|date',
+
+                            'members' => 'nullable|array',
+                            'members.*.name' => 'required|string',
+                            'members.*.nationality' => 'required|string',
+                            'members.*.relation' => 'required|string',
+                            'members.*.passport_number' => 'required|string',
+                            'members.*.passport_issued_date' => 'required|date',
+                            'members.*.passport_expired_date' => 'required|date',
+
+                            'surat_pengantar_ppmi' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                            'passport' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                            'passport_ayah' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                            'passport_ibu' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                            'bonafide_suami_istri' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                            'visa' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                        ]);
+                        break;
+                }
+                break;
+
+            case 5: // Trip
+                $request->validate([
+                    'place_of_birth' => 'required|string',
+                    'date_of_birth' => 'required|date',
+
+                    'members' => 'nullable|array',
+                    'members.*.name' => 'required|string',
+                    'members.*.relation' => 'required|string',
+                    'members.*.passport_number' => 'required|string',
+                    'members.*.visa_start_date' => 'required|date',
+                    'members.*.visa_expired_date' => 'required|date',
+
+                    'surat_pengantar_ppmi' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+                ]);
+                break;
+
+            default:
+                return response()->json(['error' => 'Invalid type_id'], 400);
+        }
+
+        $data = $request->except('members');
         $data['user_id'] = $user->id;
 
-        // ✅ Upload file
-        foreach ($request->allFiles() as $key => $file) {
-            if (is_array($file)) continue; // skip kalau ada file array (misal file upload per-member)
-            $data[$key] = $request->file($key)->store("uploads/applications/{$user->id}", 'public');
+        $documentFields = [
+            'surat_pengantar_ppmi',
+            'passport',
+            'ektp',
+            'kartu_keluarga',
+            'ijazah',
+            'surat_kemampuan_finansial',
+            'surat_acceptance_universitas_pakistan',
+            'surat_keterangan_kemenag',
+            'visa',
+            'bukti_lapor_diri',
+            'bonafide',
+            'passport_suami_istri',
+            'bonafide_suami_istri',
+            'passport_ayah',
+            'passport_ibu',
+        ];
+
+        foreach ($documentFields as $field) {
+            if ($request->hasFile($field)) {
+                $data[$field] = $request->file($field)->store('documents', 'public');
+            }
         }
 
         $application = Application::create($data);
 
-        // Simpan anggota keluarga
         if ($request->has('members')) {
             foreach ($request->members as $memberData) {
                 $application->members()->create($memberData);
             }
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Application submitted successfully',
-            'data' => $application->load('members'),
-        ], 201);
+        return redirect()->route('applications.show', $application->id)
+                     ->with('success', 'Application created successfully.');
     }
 
-    public function update(Request $request, Application $application)
-    {
-        $user = Auth::user();
+    public function update(Request $request, Application $application) {
+        $user = auth()->user();
+
+        // dd($application->user_id);
 
         if ($application->user_id !== $user->id) {
             return response()->json(['error' => 'Unauthorized'], 403);
@@ -102,23 +252,103 @@ class ApplicationController extends Controller
             'passport_number' => 'sometimes|required|string',
             'passport_issued_date' => 'sometimes|required|date',
             'passport_expired_date' => 'sometimes|required|date',
+            'place_of_birth' => 'sometimes|required|string',
+            'date_of_birth' => 'sometimes|required|date',
         ];
 
-        $typeId = (int) $request->input('type_id', $application->type_id);
-        $rules = array_merge($rules, $this->getValidationRulesByType($request, $typeId, true));
-        $validated = $request->validate($rules);
+        switch ((int) $request->type_id) {
+            case 1:
+                $rules = array_merge($rules, [
+                    'nik' => 'sometimes|required|string',
+                    'members' => 'nullable|array',
+                    'members.*.name' => 'required|string',
+                    'members.*.nik' => 'string',
+                    'members.*.pob' => 'string',
+                    'members.*.dob' => 'date',
+                    'members.*.nationality' => 'required|string',
+                    'members.*.relation' => 'required|string',
+                    'members.*.address' => 'string',
+                ]);
+                break;
 
-        // Handle file updates
-        foreach ($request->files->all() as $key => $file) {
-            if ($application->{$key}) {
-                Storage::disk('public')->delete($application->{$key});
-            }
-            $validated[$key] = $file->store("uploads/applications/{$user->id}", 'public');
+            case 2:
+                $rules = array_merge($rules, [
+                    'visa_start_date' => 'sometimes|required|date',
+                    'visa_expired_date' => 'sometimes|required|date',
+                ]);
+                break;
+
+            case 3:
+                $rules = array_merge($rules, [
+                    'visa_start_date' => 'sometimes|required|date',
+                    'visa_expired_date' => 'sometimes|required|date',
+                    'universitas_selanjutnya' => 'sometimes|required|string',
+                ]);
+                break;
+
+            case 4:
+                $rules['renewal_for'] = 'sometimes|required|in:student,spouse,children';
+                switch ($request->renewal_for) {
+                    case 'student':
+                        $rules = array_merge($rules, [
+                            'visa_start_date' => 'sometimes|required|date',
+                            'visa_expired_date' => 'sometimes|required|date',
+                        ]);
+                        break;
+
+                    case 'spouse':
+                        $rules = array_merge($rules, [
+                            'visa_start_date' => 'sometimes|required|date',
+                            'visa_expired_date' => 'sometimes|required|date',
+                            'name_spouse' => 'sometimes|required|string',
+                            'pob_spouse' => 'sometimes|required|string',
+                            'dob_spouse' => 'sometimes|required|date',
+                            'address_spouse' => 'sometimes|required|string',
+                            'nik_spouse' => 'sometimes|required|string',
+                            'nationality_spouse' => 'sometimes|required|string',
+                            'relation_spouse' => 'sometimes|required|string',
+                            'passport_number_spouse' => 'sometimes|required|string',
+                            'passport_issued_date_spouse' => 'sometimes|required|date',
+                            'passport_expired_date_spouse' => 'sometimes|required|date',
+                        ]);
+                        break;
+
+                    case 'children':
+                        $rules = array_merge($rules, [
+                            'visa_start_date' => 'sometimes|required|date',
+                            'visa_expired_date' => 'sometimes|required|date',
+                            'members' => 'nullable|array',
+                            'members.*.name' => 'required|string',
+                            'members.*.nationality' => 'required|string',
+                            'members.*.relation' => 'required|string',
+                            'members.*.passport_number' => 'required|string',
+                            'members.*.passport_issued_date' => 'required|date',
+                            'members.*.passport_expired_date' => 'required|date',
+                        ]);
+                        break;
+                }
+                break;
+
+            case 5:
+                $rules = array_merge($rules, [
+                    'members' => 'nullable|array',
+                    'members.*.name' => 'required|string',
+                    'members.*.relation' => 'required|string',
+                    'members.*.passport_number' => 'required|string',
+                    'members.*.visa_start_date' => 'required|date',
+                    'members.*.visa_expired_date' => 'required|date',
+                ]);
+                break;
+
+            default:
+                return response()->json(['error' => 'Invalid type_id'], 400);
         }
 
+        $validated = $request->validate($rules);
+
+        $validated['user_id'] = $user->id;
         $application->update($validated);
 
-        // Update atau tambah members
         if ($request->has('members')) {
             foreach ($request->members as $memberData) {
                 if (isset($memberData['id'])) {
@@ -129,144 +359,25 @@ class ApplicationController extends Controller
             }
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Application updated successfully',
-            'data' => $application->load('members'),
-        ]);
+        return redirect()->route('applications.show', $application->id)
+                     ->with('success', 'Application updated successfully.');
     }
 
-    public function cancel(Application $application)
-    {
-        if ($application->user_id !== auth()->id()) {
+    public function cancel(Application $application) {
+        $user = auth()->user();
+
+        if ($application->user_id !== $user->id) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $application->update(['status' => 'cancelled']);
+        // Update status jadi 'cancelled'
+        $application->status = 'cancelled';
+        $application->save();
+
+        // Hapus semua anggota (members) terkait aplikasi ini
         $application->members()->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Application cancelled and members deleted.',
-        ]);
-    }
-
-    private function getValidationRulesByType(Request $request, int $typeId, bool $isUpdate = false): array
-    {
-        $required = $isUpdate ? 'sometimes' : 'required';
-
-        switch ($typeId) {
-            case 1: // New Student
-                return [
-                    'nik' => "$required|string",
-                    'place_of_birth' => "$required|string",
-                    'date_of_birth' => "$required|date",
-                    'surat_pengantar_ppmi' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                    'passport' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                    'ektp' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                    'kartu_keluarga' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                    'ijazah' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                    'surat_kemampuan_finansial' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                    'surat_acceptance_universitas_pakistan' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                    'surat_keterangan_kemenag' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                    'members' => 'nullable|array',
-                    'members.*.name' => 'required|string',
-                    'members.*.relation' => 'required|string',
-                ];
-            case 2: // IBBC
-                return [
-                    'visa_start_date' => "$required|date",
-                    'visa_expired_date' => "$required|date",
-                    'place_of_birth' => "$required|string",
-                    'date_of_birth' => "$required|date",
-                    'surat_pengantar_ppmi' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                    'passport' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                    'visa' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                    'bukti_lapor_diri' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                    'ijazah' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                    'surat_acceptance_universitas_pakistan' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                ];
-            case 3: // HEC
-                return [
-                    'visa_start_date' => "$required|date",
-                    'visa_expired_date' => "$required|date",
-                    'universitas_selanjutnya' => "$required|string",
-                    'place_of_birth' => "$required|string",
-                    'date_of_birth' => "$required|date",
-                    'surat_pengantar_ppmi' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                    'passport' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                    'visa' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                    'bukti_lapor_diri' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                    'ijazah' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                    'surat_acceptance_universitas_pakistan' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                ];
-            case 4: // Renewal Visa
-                $rules = ['renewal_for' => "$required|in:student,spouse,children"];
-                switch ($request->renewal_for) {
-                    case 'student':
-                        return array_merge($rules, [
-                            'visa_start_date' => "$required|date",
-                            'visa_expired_date' => "$required|date",
-                            'place_of_birth' => "$required|string",
-                            'date_of_birth' => "$required|date",
-                            'bukti_lapor_diri' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                            'bonafide' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                            'passport' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                            'visa' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                        ]);
-                    case 'spouse':
-                        return array_merge($rules, [
-                            'name_spouse' => "$required|string",
-                            'pob_spouse' => "$required|string",
-                            'dob_spouse' => "$required|date",
-                            'address_spouse' => "$required|string",
-                            'nik_spouse' => "$required|string",
-                            'nationality_spouse' => "$required|string",
-                            'relation_spouse' => "$required|string",
-                            'passport_number_spouse' => "$required|string",
-                            'passport_issued_date_spouse' => "$required|date",
-                            'passport_expired_date_spouse' => "$required|date",
-                            'visa_start_date' => "$required|date",
-                            'visa_expired_date' => "$required|date",
-                            'surat_pengantar_ppmi' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                            'passport' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                            'passport_suami_istri' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                            'bonafide_suami_istri' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                            'visa' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                        ]);
-                    case 'children':
-                        return array_merge($rules, [
-                            'visa_start_date' => "$required|date",
-                            'visa_expired_date' => "$required|date",
-                            'members' => 'nullable|array',
-                            'members.*.name' => 'required|string',
-                            'members.*.passport_number' => 'required|string',
-                            'members.*.passport_issued_date' => 'required|date',
-                            'members.*.passport_expired_date' => 'required|date',
-                            'members.*.nationality' => 'required|string',
-                            'members.*.relation' => 'required|string',
-                            'surat_pengantar_ppmi' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                            'passport' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                            'passport_ayah' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                            'passport_ibu' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                            'bonafide_suami_istri' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                            'visa' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                        ]);
-                }
-            case 5: // Trip
-                return [
-                    'place_of_birth' => "$required|string",
-                    'date_of_birth' => "$required|date",
-                    'members' => 'nullable|array',
-                    'members.*.name' => 'required|string',
-                    'members.*.relation' => 'required|string',
-                    'members.*.passport_number' => 'required|string',
-                    'members.*.visa_start_date' => 'required|date',
-                    'members.*.visa_expired_date' => 'required|date',
-                    'surat_pengantar_ppmi' => "$required|file|mimes:pdf,jpg,jpeg,png|max:2048",
-                ];
-            default:
-                return [];
-        }
+        return redirect()->route('applications.index')
+                     ->with('success', 'Application cancelled successfully.');
     }
 }
