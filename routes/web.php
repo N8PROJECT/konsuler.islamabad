@@ -1,6 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PageController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\OtpVerificationController;
 
@@ -15,53 +19,53 @@ use App\Http\Controllers\Auth\OtpVerificationController;
 |
 */
 
+Route::get('/', [PageController::class, 'guest_home'])->name('home');
+
 // Authentication Routes
-Route::get('/login', function () {
-    return view('auth.login');
-})->name('login');
+Route::get('/login', [AuthController::class, 'login_form'])->name('login.form');
+Route::post('/login', [AuthController::class, 'login'])->name('login');
 
-Route::get('/register', function () {
-    return view('auth.register');
-})->name('register');
+Route::get('/register', [AuthController::class, 'register_form'])->name('register.form');
+Route::post('/register', [AuthController::class, 'register'])->name('register');
 
-Route::post('/register', function () {
-    // TODO: Implement registration logic
-    return redirect()->route('login')->with('success', 'Registration successful! Please log in.');
-})->name('register.store');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Forgot Password Routes
-Route::get('/forgot-password', function () {
-    return view('auth.forgot-password.forgot-password');
-})->name('forgot-password');
+Route::get('/forgot-password', [AuthController::class, 'showForgotForm'])->name('forgot-password');
+Route::post('/forgot-password', [AuthController::class, 'sendEmail'])->name('forgot-password.send');
+Route::get('/reset-password', [AuthController::class, 'showResetForm'])->name('password.reset.form');
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.reset');
 
-Route::post('/forgot-password', function () {
-    // TODO: Implement OTP sending logic
-    return redirect()->route('forgot-password.otp');
-})->name('forgot-password.send');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/home', [PageController::class, 'user_home'])->name('user.home');
 
-Route::get('/forgot-password/otp', function () {
-    return view('auth.forgot-password.otp');
-})->name('forgot-password.otp');
+    Route::get('/applications', [ApplicationController::class, 'applications'])->name('applications');
+    Route::get('/application/{id}', [ApplicationController::class, 'show'])->name('application.show');
+    Route::get('/application/{id}/download', [ApplicationController::class, 'download'])->name('application.download');
+    Route::get('/application/{application}/edit', [ApplicationController::class, 'edit'])->name('application.edit');
+    Route::put('/application/{application}', [ApplicationController::class, 'update'])->name('application.update');
+    Route::delete('/application/{application}', [ApplicationController::class, 'destroy'])->name('application.destroy');
 
-Route::get('/forgot-password/new-password', function () {
-    return view('auth.forgot-password.new-password');
-})->name('forgot-password.new-password');
+    Route::get('/noc/newstudent', [PageController::class, 'newstudent'])->name('noc.newstudent');
+    Route::post('/application/store', [ApplicationController::class, 'store'])->name('application.store');
 
-Route::post('/forgot-password/verify', function () {
-    // TODO: Implement OTP verification logic
-    return redirect()->route('forgot-password.new-password');
-})->name('forgot-password.verify');
+    Route::get('/noc/ibbc', [PageController::class, 'ibbc'])->name('noc.ibbc');
 
+    Route::get('/noc/hec', [PageController::class, 'hec'])->name('noc.hec');
 
+    Route::get('/noc/renewalvisa', [PageController::class, 'renewalvisa'])->name('noc.renewalvisa');
+    Route::get('/noc/renewalvisa/student', [PageController::class, 'student'])->name('renewalvisa.student');
+    Route::get('/noc/renewalvisa/spouse', [PageController::class, 'spouse'])->name('renewalvisa.spouse');
+    Route::get('/noc/renewalvisa/child', [PageController::class, 'child'])->name('renewalvisa.child');
 
-// Add this route
-Route::get('/home', function () {
-    return view('welcome');
-})->name('home');
+    Route::get('/noc/trip', [PageController::class, 'trip'])->name('noc.trip');
+    
+});
 
-// default route 
-
-
-Route::get('/', function () {
-    return view('welcome');
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/applications', [AdminController::class, 'index'])->name('admin.applications.index');
+    Route::get('/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
+    Route::get('/applications/{id}', [AdminController::class, 'show'])->name('admin.application.show');
+    Route::post('/applications/{id}/comment', [AdminController::class, 'comment'])->name('admin.application.comment');
+    Route::post('/applications/{id}/reject', [AdminController::class, 'reject'])->name('admin.application.reject');
+    Route::post('/applications/{id}/approve', [AdminController::class, 'approve'])->name('admin.application.approve');
 });

@@ -14,7 +14,7 @@ class TypeSeeder extends Seeder
     public function run(): void
     {
         DB::table('types')->insert([
-            ['name' => 'New Student'],
+            ['name' => 'New Admission'],
             ['name' => 'IBBC'],
             ['name' => 'HEC'],
             ['name' => 'Renewal Visa'],

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('type_id')->constrained('types')->onDelete('cascade');
             $table->enum('status', ['pending', 'approved', 'rejected', 'reviewed', 'cancelled'])->default('pending');
 
-            // Common fields for all NOC types
+            // Common fields for all types
             $table->string('fullname');
             $table->string('place_of_birth')->nullable();
             $table->date('date_of_birth')->nullable();
@@ -28,13 +28,23 @@ return new class extends Migration
             $table->date('passport_issued_date');
             $table->date('passport_expired_date');
 
-            // Fields specific to NOC HEC
+            // Fields specific to New Admission
+            $table->string('refer_letter_number')->nullable();
+            $table->date('refer_letter_date')->nullable();
+            $table->string('refer_letter')->nullable();
+            $table->string('major')->nullable();
+
+            // Fields specific to HEC
             $table->string('universitas_selanjutnya')->nullable();
+
+            // Fields specific to NOC IBBC
+            $table->string('last_education')->nullable();
+            $table->date('graduation_date')->nullable();
 
             // NOC Renewal Visa
             $table->enum('renewal_for', ['student', 'spouse', 'children'])->nullable();
 
-            // Fields specific to NOC Renewal Visa (Spouse)
+            // Fields specific to Renewal Visa (Spouse)
             $table->string('name_spouse')->nullable();
             $table->string('pob_spouse')->nullable();
             $table->date('dob_spouse')->nullable();
@@ -46,7 +56,7 @@ return new class extends Migration
             $table->date('passport_issued_date_spouse')->nullable();
             $table->date('passport_expired_date_spouse')->nullable();
 
-            // Fields specific to NOC Renewal Visa (Children)
+            // Fields specific to Renewal Visa (Children)
             $table->string('name_children')->nullable();
             $table->string('nationality_children')->nullable();
             $table->string('relation_children')->nullable();
@@ -54,7 +64,7 @@ return new class extends Migration
             $table->date('passport_issued_date_children')->nullable();
             $table->date('passport_expired_date_children')->nullable();
 
-            // Fields specific to NOC for Trip
+            // Fields specific to for Trip
             $table->string('name_member')->nullable();
             $table->string('passport_number_member')->nullable();
             $table->date('visa_start_date_member')->nullable();
@@ -83,11 +93,10 @@ return new class extends Migration
 
             $table->string('noc')->nullable();
 
-            // Family Information
-            // $table->json('members')->nullable();
-
             // Admin
             $table->string('comment')->nullable();
+
+            $table->string('letter_number')->nullable();
             
             $table->timestamps();
         });

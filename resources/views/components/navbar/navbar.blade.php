@@ -13,50 +13,72 @@
                     Home
                 </a>
                 <a 
-                {{-- href="{{ route('application') }}"  --}}
+                href="{{ route('applications') }}" 
                    class="text-gray-700 hover:text-red-600 px-3 py-2 text-sm font-medium transition-all duration-200 border-b-2 border-transparent hover:border-red-600 {{ request()->routeIs('application') ? 'text-red-600 border-red-600' : '' }}">
                     Application
                 </a>
                 <a 
-                {{-- href="{{ route('noc.student') }}"  --}}
+                href="{{ route('noc.newstudent') }}" 
                    class="text-gray-700 hover:text-red-600 px-3 py-2 text-sm font-medium transition-all duration-200 border-b-2 border-transparent hover:border-red-600 {{ request()->routeIs('noc.student') ? 'text-red-600 border-red-600' : '' }}">
-                    NOC New Student
+                    New Admission
                 </a>
                 <a 
-                {{-- href="{{ route('noc.ibbc') }}"  --}}
-                   class="text-gray-700 hover:text-red-600 px-3 py-2 text-sm font-medium transition-all duration-200 border-b-2 border-transparent hover:border-red-600 {{ request()->routeIs('noc.ibbc') ? 'text-red-600 border-red-600' : '' }}">
-                    NOC IBBC
-                </a>
-                <a 
-                {{-- href="{{ route('noc.hec') }}"  --}}
-                   class="text-gray-700 hover:text-red-600 px-3 py-2 text-sm font-medium transition-all duration-200 border-b-2 border-transparent hover:border-red-600 {{ request()->routeIs('noc.hec') ? 'text-red-600 border-red-600' : '' }}">
-                    NOC HEC
-                </a>
-                <a 
-                {{-- href="{{ route('noc.visa') }}"  --}}
+                href="{{ route('noc.renewalvisa') }}" 
                    class="text-gray-700 hover:text-red-600 px-3 py-2 text-sm font-medium transition-all duration-200 border-b-2 border-transparent hover:border-red-600 {{ request()->routeIs('noc.visa') ? 'text-red-600 border-red-600' : '' }}">
-                    NOC Visa
+                    Visa
                 </a>
                 <a 
-                {{-- href="{{ route('noc.trip') }}"  --}}
+                href="{{ route('noc.ibbc') }}" 
+                   class="text-gray-700 hover:text-red-600 px-3 py-2 text-sm font-medium transition-all duration-200 border-b-2 border-transparent hover:border-red-600 {{ request()->routeIs('noc.ibbc') ? 'text-red-600 border-red-600' : '' }}">
+                    IBBC
+                </a>
+                <a 
+                href="{{ route('noc.hec') }}" 
+                   class="text-gray-700 hover:text-red-600 px-3 py-2 text-sm font-medium transition-all duration-200 border-b-2 border-transparent hover:border-red-600 {{ request()->routeIs('noc.hec') ? 'text-red-600 border-red-600' : '' }}">
+                    HEC
+                </a>
+                <a 
+                href="{{ route('noc.trip') }}" 
                    class="text-gray-700 hover:text-red-600 px-3 py-2 text-sm font-medium transition-all duration-200 border-b-2 border-transparent hover:border-red-600 {{ request()->routeIs('noc.trip') ? 'text-red-600 border-red-600' : '' }}">
-                    NOC Trip
+                    Trip
                 </a>
             </div>
             
             <!-- User Menu - Far Right -->
             <div class="flex items-center space-x-4">
-                <!-- User Avatar/Name -->
+                <!-- User Avatar/Name or Login Button -->
                 <div class="flex items-center space-x-2">
-                    <span class="text-sm text-gray-700">Rizqy Zufar</span>
-                    <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                        </svg>
-                    </div>
+                    @auth
+                        <div class="relative group">
+                            <div class="flex items-center space-x-2 cursor-pointer">
+                                <span class="text-sm text-gray-700">{{ Auth::user()->name }}</span>
+                                <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <!-- Dropdown menu -->
+                            <div class="absolute right-0 mt-0 w-28 bg-white border rounded shadow-md hidden group-hover:block z-50">
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        Logout
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @else
+                        <a href="{{ route('login.form') }}"
+                        class="text-sm text-white bg-[#CB1428] hover:bg-[#a71120] px-4 py-2 rounded transition">
+                            Login
+                        </a>
+                    @endauth
                 </div>
             </div>
-            
+   
             <!-- Mobile Menu Button -->
             <div class="md:hidden">
                 <button type="button" class="text-gray-600 hover:text-gray-900 focus:outline-none focus:text-gray-900">

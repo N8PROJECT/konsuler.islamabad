@@ -9,7 +9,15 @@
 </head>
 <body class="bg-gray-50">
     <!-- Navigation -->
-    <x-navbar />
+    @auth
+        @if(Auth::user()->role === 'admin')
+            @include('components.navbar.navbar-admin')
+        @else
+            @include('components.navbar.navbar')
+        @endif
+    @else
+        @include('components.navbar.navbar') {{-- Untuk guest --}}
+    @endauth
     
     <!-- Main Content -->
     <main>

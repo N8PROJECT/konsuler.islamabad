@@ -66,7 +66,7 @@
         <div class="text-center">
             <p class="text-sm text-gray-600">
                 Not registered yet? 
-                <a href="{{ route('register') }}" class=" text-[#CB1428] hover:text-red-700 hover:underline font-medium">
+                <a href="{{ route('register.form') }}" class=" text-[#CB1428] hover:text-red-700 hover:underline font-medium">
                     Sign Up
                 </a>
             </p>
