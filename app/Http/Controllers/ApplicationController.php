@@ -2,34 +2,195 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Type;
 use App\Models\Application;
 use Illuminate\Http\Request;
+use App\Helpers\NocDocGenerator;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class ApplicationController extends Controller
 {
-    public function index() {
+    public function applications() {
         $user = auth()->user();
 
-        $applications = Application::with('members')
+        $onProcess = Application::with('members')
             ->where('user_id', $user->id)
+            ->where('status', 'Pending')
             ->orderByDesc('created_at')
             ->get();
 
-        return view('application.index', compact('applications'));
+        $recently = Application::where('user_id', auth()->id())
+            ->whereIn('status', ['approved', 'rejected', 'reviewed', 'cancelled'])
+            ->latest()
+            ->get();
+
+        return view('user.applications', compact('onProcess', 'recently'));
     }
 
     public function show($id) {
-        $application = Application::with('members')->find($id);
+        $application = Application::with(['members', 'type'])
+            ->where('user_id', auth()->id()) // keamanan
+            ->findOrFail($id);
 
-        if (!$application || $application->user_id !== auth()->id()) {
-            return redirect()->route('applications.index')->with('error', 'Not found or unauthorized.');
-        }
+        $fieldSets = [
+            1 => [
+                'fields' => [
+                    'nik' => 'NIK',
+                    'place_of_birth' => 'Place of Birth',
+                    'date_of_birth' => 'Date of Birth',
+                    'passport_number' => 'Passport Number',
+                    'passport_issued_date' => 'Passport Issued Date',
+                    'passport_expired_date' => 'Passport Expired Date',
+                    'nationality' => 'Nationality',
+                    'refer_letter_number' => 'Refer Letter Number',
+                    'refer_letter_date' => 'Refer Letter Date',
+                    'refer_letter' => 'Refer Letter',
+                    'universitas_selanjutnya' => 'Next University',
+                    'major' => 'Major',
+                ],
+                'documents' => [
+                    'surat_pengantar_ppmi' => 'Surat Pengantar PPMI',
+                    'passport' => 'Passport',
+                    'ektp' => 'E-KTP',
+                    'kartu_keluarga' => 'Kartu Keluarga',
+                    'ijazah' => 'Ijazah',
+                    'surat_kemampuan_finansial' => 'Surat Kemampuan Finansial',
+                    'surat_acceptance_universitas_pakistan' => 'Surat Acceptance Universitas Pakistan',
+                    'surat_keterangan_kemenag' => 'Surat Keterangan Kemenag',
+                ]
+            ],
+            2 => [
+                'fields' => [
+                    'place_of_birth' => 'Place of Birth',
+                    'date_of_birth' => 'Date of Birth',
+                    'visa_start_date' => 'Visa Start Date',
+                    'visa_expired_date' => 'Visa Expired Date',
+                    'passport_number' => 'Passport Number',
+                    'passport_issued_date' => 'Passport Issued Date',
+                    'passport_expired_date' => 'Passport Expired Date',
+                    'nationality' => 'Nationality',
+                    'last_education' => 'Last Education',
+                    'graduation_date' => 'Graduation Date',
+                    'universitas_selanjutnya' => 'Next University',
+                ],
+                'documents' => [
+                    'surat_pengantar_ppmi' => 'Surat Pengantar PPMI',
+                    'passport' => 'Passport',
+                    'visa' => 'Visa',
+                    'bukti_lapor_diri' => 'Bukti Lapor Diri',
+                    'ijazah' => 'Ijazah',
+                    'surat_acceptance_universitas_pakistan' => 'Surat Acceptance Universitas Pakistan',
+                ]
+            ],
+            3 => [
+                'fields' => [
+                    'universitas_selanjutnya' => 'Universitas Selanjutnya',
+                    'place_of_birth' => 'Place of Birth',
+                    'date_of_birth' => 'Date of Birth',
+                    'visa_start_date' => 'Visa Start Date',
+                    'visa_expired_date' => 'Visa Expired Date',
+                    'passport_number' => 'Passport Number',
+                    'passport_issued_date' => 'Passport Issued Date',
+                    'passport_expired_date' => 'Passport Expired Date',
+                    'nationality' => 'Nationality',
+                ],
+                'documents' => [
+                    'surat_pengantar_ppmi' => 'Surat Pengantar PPMI',
+                    'passport' => 'Passport',
+                    'visa' => 'Visa',
+                    'bukti_lapor_diri' => 'Bukti Lapor Diri',
+                    'ijazah' => 'Ijazah',
+                    'surat_acceptance_universitas_pakistan' => 'Surat Acceptance Universitas Pakistan',
+                ]
+            ],
+            4 => [ // Renewal Visa
+                'fields' => [ /* default student */ ],
+                'documents' => [ /* default student */ ],
 
-        return view('application.show', compact('application'));
+                'subtypes' => [
+                    'student' => [
+                        'fields' => [ /* khusus student */ ],
+                        'documents' => [ /* khusus student */ ]
+                    ],
+                    'spouse' => [
+                        'fields' => [
+                            'renewal_for' => 'Renewal For',
+                            'name_spouse' => 'Name of Spouse',
+                            'pob_spouse' => 'Place of Birth (Spouse)',
+                            'dob_spouse' => 'Date of Birth (Spouse)',
+                            'address_spouse' => 'Address (Spouse)',
+                            'nik_spouse' => 'NIK (Spouse)',
+                            'nationality_spouse' => 'Nationality (Spouse)',
+                            'relation_spouse' => 'Relation (Spouse)',
+                            'passport_number_spouse' => 'Passport Number (Spouse)',
+                            'passport_issued_date_spouse' => 'Passport Issued Date (Spouse)',
+                            'passport_expired_date_spouse' => 'Passport Expired Date (Spouse)',
+                            'place_of_birth' => 'Place of Birth',
+                            'date_of_birth' => 'Date of Birth',
+                            'visa_start_date' => 'Visa Start Date',
+                            'visa_expired_date' => 'Visa Expired Date',
+                            'passport_number' => 'Passport Number',
+                            'passport_issued_date' => 'Passport Issued Date',
+                            'passport_expired_date' => 'Passport Expired Date',
+                            'nationality' => 'Nationality',
+                        ],
+                        'documents' => [
+                            'passport' => 'Passport',
+                            'visa' => 'Visa',
+                            'surat_pengantar_ppmi' => 'Surat Pengantar PPMI',
+                            'passport_suami_istri' => 'Passport Suami/Istri',
+                            'bonafide_suami_istri' => 'Bonafide Suami/Istri',
+                        ]
+                    ],
+                    'children' => [
+                        'fields' => [
+                            'name_children' => 'Name of Children',
+                            'nationality_children' => 'Nationality (Children)',
+                            'relation_children' => 'Relation (Children)',
+                            'passport_number_children' => 'Passport Number (Children)',
+                            'passport_issued_date_children' => 'Passport Issued Date (Children)',
+                            'passport_expired_date_children' => 'Passport Expired Date (Children)',
+                            'place_of_birth' => 'Place of Birth',
+                            'date_of_birth' => 'Date of Birth',
+                            'visa_start_date' => 'Visa Start Date',
+                            'visa_expired_date' => 'Visa Expired Date',
+                            'passport_number' => 'Passport Number',
+                            'passport_issued_date' => 'Passport Issued Date',
+                            'passport_expired_date' => 'Passport Expired Date',
+                            'nationality' => 'Nationality',
+                        ],
+                        'documents' => [
+                            'passport' => 'Passport',
+                            'visa' => 'Visa',
+                            'surat_pengantar_ppmi' => 'Surat Pengantar PPMI',
+                            'passport_ayah' => 'Passport Ayah',
+                            'passport_ibu' => 'Passport Ibu',
+                        ]
+                    ]
+                ]
+            ],
+
+            5 => [
+                'fields' => [
+                    'place_of_birth' => 'Place of Birth',
+                    'date_of_birth' => 'Date of Birth',
+                    'passport_number' => 'Passport Number',
+                    'passport_issued_date' => 'Passport Issued Date',
+                    'passport_expired_date' => 'Passport Expired Date',
+                    'nationality' => 'Nationality',
+                ],
+                'documents' => [
+                    'surat_pengantar_ppmi' => 'Surat Pengantar PPMI',
+                ]
+            ],
+        ];
+
+        return view('user.application-show', compact('application', 'fieldSets'));
     }
+
 
     public function create() {
         return view('application.create');
@@ -48,11 +209,16 @@ class ApplicationController extends Controller
         ]);
 
         switch ($request->type_id) {
-            case 1: // New Student
+            case 1: // New Admission
                 $request->validate([
                     'nik' => 'required|string',
                     'place_of_birth' => 'required|string',
                     'date_of_birth' => 'required|date',
+                    'refer_letter_number' => 'required|string',
+                    'refer_letter_date' => 'required|date',
+                    'refer_letter' => 'required|string',
+                    'universitas_selanjutnya' => 'required|string',
+                    'major' => 'required|string',
 
                     'members' => 'nullable|array',
                     'members.*.name' => 'required|string',
@@ -69,7 +235,6 @@ class ApplicationController extends Controller
                     'kartu_keluarga' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
                     'ijazah' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
                     'surat_kemampuan_finansial' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
-                    'surat_acceptance_universitas_pakistan' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
                     'surat_keterangan_kemenag' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
                 ]);
                 break;
@@ -80,6 +245,9 @@ class ApplicationController extends Controller
                     'visa_expired_date' => 'required|date',
                     'place_of_birth' => 'required|string',
                     'date_of_birth' => 'required|date',
+                    'last_education' => 'required|string',
+                    'graduation_date' => 'required|date',
+                    'universitas_selanjutnya' => 'required|string',
 
                     'surat_pengantar_ppmi' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
                     'passport' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
@@ -232,91 +400,124 @@ class ApplicationController extends Controller
             }
         }
 
-        return redirect()->route('applications.show', $application->id)
-                     ->with('success', 'Application created successfully.');
+        // dd($application);
+
+        return redirect()->route('applications')->with('success', 'Application created successfully.');
+    }
+
+    public function edit(Application $application)
+    {
+        if ($application->user_id !== auth()->id() || $application->status !== 'reviewed') {
+            abort(403);
+        }
+
+        $fieldSets = config('noc');
+
+        return view('user.application-edit', compact('application', 'fieldSets'));
     }
 
     public function update(Request $request, Application $application) {
+        // dd($request->all());
         $user = auth()->user();
-
-        // dd($application->user_id);
 
         if ($application->user_id !== $user->id) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
+        if ($application->status !== 'reviewed') {
+            return redirect()->route('applications.show', $application->id)
+                ->with('error', 'You can only edit application when status is reviewed.');
+        }
+
         $rules = [
-            'type_id' => 'sometimes|required|exists:types,id',
-            'fullname' => 'sometimes|required|string',
-            'nationality' => 'sometimes|required|string',
-            'passport_number' => 'sometimes|required|string',
-            'passport_issued_date' => 'sometimes|required|date',
-            'passport_expired_date' => 'sometimes|required|date',
-            'place_of_birth' => 'sometimes|required|string',
-            'date_of_birth' => 'sometimes|required|date',
+            'type_id' => 'required|exists:types,id',
+            'fullname' => 'required|string',
+            'nationality' => 'required|string',
+            'passport_number' => 'required|string',
+            'passport_issued_date' => 'required|date',
+            'passport_expired_date' => 'required|date',
         ];
 
-        switch ((int) $request->type_id) {
-            case 1:
+        $typeId = (int) $request->type_id;
+
+        switch ($typeId) {
+            case 1: // New Admission
                 $rules = array_merge($rules, [
-                    'nik' => 'sometimes|required|string',
+                    'nik' => 'required|string',
+                    'place_of_birth' => 'required|string',
+                    'date_of_birth' => 'required|date',
+
                     'members' => 'nullable|array',
                     'members.*.name' => 'required|string',
-                    'members.*.nik' => 'string',
-                    'members.*.pob' => 'string',
-                    'members.*.dob' => 'date',
+                    'members.*.nik' => 'nullable|string',
+                    'members.*.pob' => 'nullable|string',
+                    'members.*.dob' => 'nullable|date',
                     'members.*.nationality' => 'required|string',
                     'members.*.relation' => 'required|string',
-                    'members.*.address' => 'string',
+                    'members.*.address' => 'nullable|string',
                 ]);
                 break;
 
-            case 2:
+            case 2: // IBBC
                 $rules = array_merge($rules, [
-                    'visa_start_date' => 'sometimes|required|date',
-                    'visa_expired_date' => 'sometimes|required|date',
+                    'visa_start_date' => 'required|date',
+                    'visa_expired_date' => 'required|date',
+                    'place_of_birth' => 'required|string',
+                    'date_of_birth' => 'required|date',
+                    'last_education' => 'required|string',
+                    'graduation_date' => 'required|date',
+                    'universitas_selanjutnya' => 'required|string',
                 ]);
                 break;
 
-            case 3:
+            case 3: // HEC
                 $rules = array_merge($rules, [
-                    'visa_start_date' => 'sometimes|required|date',
-                    'visa_expired_date' => 'sometimes|required|date',
-                    'universitas_selanjutnya' => 'sometimes|required|string',
+                    'visa_start_date' => 'required|date',
+                    'visa_expired_date' => 'required|date',
+                    'universitas_selanjutnya' => 'required|string',
+                    'place_of_birth' => 'required|string',
+                    'date_of_birth' => 'required|date',
                 ]);
                 break;
 
-            case 4:
-                $rules['renewal_for'] = 'sometimes|required|in:student,spouse,children';
+            case 4: // Renewal Visa
+                $rules['renewal_for'] = 'required|in:student,spouse,children';
+
                 switch ($request->renewal_for) {
                     case 'student':
                         $rules = array_merge($rules, [
-                            'visa_start_date' => 'sometimes|required|date',
-                            'visa_expired_date' => 'sometimes|required|date',
+                            'visa_start_date' => 'required|date',
+                            'visa_expired_date' => 'required|date',
+                            'place_of_birth' => 'required|string',
+                            'date_of_birth' => 'required|date',
                         ]);
                         break;
 
                     case 'spouse':
                         $rules = array_merge($rules, [
-                            'visa_start_date' => 'sometimes|required|date',
-                            'visa_expired_date' => 'sometimes|required|date',
-                            'name_spouse' => 'sometimes|required|string',
-                            'pob_spouse' => 'sometimes|required|string',
-                            'dob_spouse' => 'sometimes|required|date',
-                            'address_spouse' => 'sometimes|required|string',
-                            'nik_spouse' => 'sometimes|required|string',
-                            'nationality_spouse' => 'sometimes|required|string',
-                            'relation_spouse' => 'sometimes|required|string',
-                            'passport_number_spouse' => 'sometimes|required|string',
-                            'passport_issued_date_spouse' => 'sometimes|required|date',
-                            'passport_expired_date_spouse' => 'sometimes|required|date',
+                            'place_of_birth' => 'required|string',
+                            'date_of_birth' => 'required|date',
+                            'visa_start_date' => 'required|date',
+                            'visa_expired_date' => 'required|date',
+
+                            'name_spouse' => 'required|string',
+                            'pob_spouse' => 'required|string',
+                            'dob_spouse' => 'required|date',
+                            'address_spouse' => 'required|string',
+                            'nik_spouse' => 'required|string',
+                            'nationality_spouse' => 'required|string',
+                            'relation_spouse' => 'required|string',
+                            'passport_number_spouse' => 'required|string',
+                            'passport_issued_date_spouse' => 'required|date',
+                            'passport_expired_date_spouse' => 'required|date',
                         ]);
                         break;
 
                     case 'children':
                         $rules = array_merge($rules, [
-                            'visa_start_date' => 'sometimes|required|date',
-                            'visa_expired_date' => 'sometimes|required|date',
+                            'visa_start_date' => 'required|date',
+                            'visa_expired_date' => 'required|date',
+
                             'members' => 'nullable|array',
                             'members.*.name' => 'required|string',
                             'members.*.nationality' => 'required|string',
@@ -329,8 +530,11 @@ class ApplicationController extends Controller
                 }
                 break;
 
-            case 5:
+            case 5: // Trip
                 $rules = array_merge($rules, [
+                    'place_of_birth' => 'required|string',
+                    'date_of_birth' => 'required|date',
+
                     'members' => 'nullable|array',
                     'members.*.name' => 'required|string',
                     'members.*.relation' => 'required|string',
@@ -345,10 +549,43 @@ class ApplicationController extends Controller
         }
 
         $validated = $request->validate($rules);
-
         $validated['user_id'] = $user->id;
+
+        // ✅ Update document uploads
+        $documentFields = [
+            'surat_pengantar_ppmi',
+            'passport',
+            'ektp',
+            'kartu_keluarga',
+            'ijazah',
+            'surat_kemampuan_finansial',
+            'surat_acceptance_universitas_pakistan',
+            'surat_keterangan_kemenag',
+            'visa',
+            'bukti_lapor_diri',
+            'bonafide',
+            'passport_suami_istri',
+            'bonafide_suami_istri',
+            'passport_ayah',
+            'passport_ibu',
+        ];
+
+        foreach ($documentFields as $field) {
+            if ($request->hasFile($field)) {
+                // Hapus file lama kalau ada
+                if ($application->$field) {
+                    Storage::disk('public')->delete($application->$field);
+                }
+
+                // Upload file baru
+                $validated[$field] = $request->file($field)->store('documents', 'public');
+            }
+        }
+
+        // Update data aplikasi
         $application->update($validated);
 
+        // ✅ Update atau tambah family members
         if ($request->has('members')) {
             foreach ($request->members as $memberData) {
                 if (isset($memberData['id'])) {
@@ -358,12 +595,15 @@ class ApplicationController extends Controller
                 }
             }
         }
+        $application->status = 'pending';
+        $application->save();
+        
 
-        return redirect()->route('applications.show', $application->id)
-                     ->with('success', 'Application updated successfully.');
+        return redirect()->route('application.show', $application->id)
+            ->with('success', 'Application updated successfully.');
     }
 
-    public function cancel(Application $application) {
+    public function destroy(Application $application) {
         $user = auth()->user();
 
         if ($application->user_id !== $user->id) {
@@ -377,7 +617,17 @@ class ApplicationController extends Controller
         // Hapus semua anggota (members) terkait aplikasi ini
         $application->members()->delete();
 
-        return redirect()->route('applications.index')
+        return redirect()->route('applications')
                      ->with('success', 'Application cancelled successfully.');
+    }
+
+    public function download($id) {
+        $application = Application::findOrFail($id);
+
+        if (!$application->noc || !Storage::exists($application->noc)) {
+            abort(404, 'File NOC tidak ditemukan.');
+        }
+
+        return Storage::download($application->noc);
     }
 }

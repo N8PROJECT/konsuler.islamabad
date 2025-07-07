@@ -7,7 +7,6 @@
      title="Create your account" 
     subtitle="Please enter your details to get started"
     icon="register"
-
 >
 
     <!-- Registration Form -->
@@ -34,6 +33,25 @@
             placeholder="name@website.com"
             :value="old('email')"
             :required="true" />
+
+        <!-- Gender Field -->
+        <div>
+            <label for="gender" class="block text-sm font-medium text-gray-700 mb-2">
+                Gender<span class="text-red-500">*</span>
+            </label>
+            <select 
+                name="gender" 
+                id="gender" 
+                required
+                class="w-full border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#CB1428] focus:border-[#CB1428] p-2.5">
+                <option value="" disabled {{ old('gender') === null ? 'selected' : '' }}>-- Select Gender --</option>
+                <option value="male" {{ old('gender') === 'male' ? 'selected' : '' }}>Male</option>
+                <option value="female" {{ old('gender') === 'female' ? 'selected' : '' }}>Female</option>
+            </select>
+            @error('gender')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
 
         <!-- Password Field -->
         <x-input 

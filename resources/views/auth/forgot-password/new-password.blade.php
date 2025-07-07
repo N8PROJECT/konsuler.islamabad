@@ -32,7 +32,7 @@
     </div>
     
     <!-- New Password Form -->
-    <form method="POST" action="{{ route('login') }}" class="space-y-4">
+    <form method="POST" action="{{ route('password.reset') }}" class="space-y-4">
         @csrf
 
         <!-- Password Field -->
