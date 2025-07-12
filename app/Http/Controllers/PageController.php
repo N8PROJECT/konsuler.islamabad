@@ -16,7 +16,7 @@ class PageController extends Controller
 
     // NOC
     public function newstudent() {
-        return view('user.noc.new-student.newstudent');
+        return view('user.noc.new-admission.newstudent');
     }
     
     public function ibbc() {

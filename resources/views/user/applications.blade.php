@@ -109,7 +109,7 @@
                                     @endif
 
                                     @if ($app->status === 'approved' && $app->noc)
-                                        <a href="{{ asset('storage/' . $app->noc) }}" 
+                                        <a href="{{ asset(str_replace('public/', 'storage/', $app->noc)) }}" 
                                         target="_blank"
                                         class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs">
                                             ⬇️ Download

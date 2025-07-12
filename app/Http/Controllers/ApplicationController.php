@@ -2,14 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Type;
 use App\Models\Application;
 use Illuminate\Http\Request;
-use App\Helpers\NocDocGenerator;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
 
 class ApplicationController extends Controller
 {
@@ -624,10 +620,13 @@ class ApplicationController extends Controller
     public function download($id) {
         $application = Application::findOrFail($id);
 
-        if (!$application->noc || !Storage::exists($application->noc)) {
+        if (!$application->noc || !Storage::disk('public')->exists($application->noc)) {
             abort(404, 'File NOC tidak ditemukan.');
         }
 
-        return Storage::download($application->noc);
+        $filePath = storage_path('app/public/' . $application->noc);
+        $downloadName = 'noc_' . strtolower(str_replace(' ', '_', $application->type->name)) . '_' . $application->id . '.pdf';
+
+        return response()->download($filePath, $downloadName);
     }
 }

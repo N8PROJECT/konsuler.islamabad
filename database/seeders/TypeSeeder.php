@@ -17,7 +17,7 @@ class TypeSeeder extends Seeder
             ['name' => 'New Admission'],
             ['name' => 'IBBC'],
             ['name' => 'HEC'],
-            ['name' => 'Renewal Visa'],
+            ['name' => 'Visa'],
             ['name' => 'Trip'],
         ]);
     }
